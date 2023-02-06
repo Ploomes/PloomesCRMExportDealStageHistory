@@ -4,6 +4,7 @@ using OfficeOpenXml.Style;
 using System.Data.Common;
 using System.Drawing;
 using System.Globalization;
+using System.Reflection;
 using System.Text.Json.Nodes;
 
 namespace PloomesCRMExportDealStageHistory
@@ -25,12 +26,12 @@ namespace PloomesCRMExportDealStageHistory
             Console.WriteLine("De quantos dias atrás (a partir de hoje) você gostaria de extrair?");
             int days = Convert.ToInt32(Console.ReadLine());
 
-            string subPath = Directory.GetCurrentDirectory() + "/Exportacoes/";
+            string subPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) + "/Exportacoes/";
             bool exists = Directory.Exists(subPath);
             if (!exists)
                 Directory.CreateDirectory(subPath);
 
-            string path = subPath + Guid.NewGuid().ToString() + ".xlsx";
+            string path = subPath + DateTime.Now.Date.ToString("yyyy-MM-dd") + "-" + Guid.NewGuid().ToString() + ".xlsx";
 
             Console.WriteLine("Estamos iniciando a exportação...");
 
@@ -42,7 +43,7 @@ namespace PloomesCRMExportDealStageHistory
 
             workSheet.Cells[1, 1].Value = "ID do Negócio";
             workSheet.Cells[1, 2].Value = "Título";
-            workSheet.Cells[1, 3].Value = "Date de Criação";
+            workSheet.Cells[1, 3].Value = "Data de Criação";
 
             int columnNumber = 4;
             JsonArray stages = await _ploomesService.GetStages();
