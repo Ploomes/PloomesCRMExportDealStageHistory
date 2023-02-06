@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using Microsoft.Extensions.Configuration;
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
@@ -10,11 +11,11 @@ namespace PloomesCRMExportDealStageHistory
         private readonly string _url;
         private readonly Dictionary<string, string> _headers;
 
-        public PloomesService(RequestService requestService) 
+        public PloomesService(RequestService requestService, IConfiguration configuration) 
         { 
             _requestService = requestService;
-            _url = "https://app43-api2.ploomes.com/";
-            _headers = new Dictionary<string, string>() { { "User-Key", "F21B90CD87C2FF68FC8EAA55E7A57D1F9A49DA6C8646A0F4FF57A5A2FBE6DFFF95D245C06AC248AB92C8D7C8E1E53309E1949028CCE15BC530791AD2387A5A4A" } };
+            _url = configuration.GetValue<string>("API2Url");
+            _headers = new Dictionary<string, string>() { { "User-Key", configuration.GetValue<string>("UserKey") } };
         }
 
         public async Task<JsonArray> GetStages()
