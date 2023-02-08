@@ -75,11 +75,12 @@ namespace PloomesCRMExportDealStageHistory
 
                     TimeSpan ts = TimeSpan.FromSeconds(Convert.ToDouble(dealStage["Seconds"].ToString(), new CultureInfo("en-US")));
 
-                    string timeFormated = string.Format("{0} dias, {1} horas, {2} minutos, {3} segundos", ts.Days, ts.Hours, ts.Minutes, ts.Seconds);
+                    string timeFormated = string.Format("{0:00}:{1:00}:{2:00}", (int)ts.TotalHours, ts.Minutes, ts.Seconds);
 
                     workSheet.Cells[lineNumber, columnNumber].Value = timeFormated;
+                    workSheet.Cells[lineNumber, columnNumber].Style.Numberformat.Format = "HH:mm:ss";
 
-                    if(ts > maxTime) 
+                    if (ts > maxTime) 
                     {
                         maxTime = ts;
                         colWithMaxTime = columnNumber;
