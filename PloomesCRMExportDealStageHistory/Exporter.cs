@@ -44,8 +44,9 @@ namespace PloomesCRMExportDealStageHistory
             workSheet.Cells[1, 1].Value = "ID do Negócio";
             workSheet.Cells[1, 2].Value = "Título";
             workSheet.Cells[1, 3].Value = "Data de Criação";
+            workSheet.Cells[1, 4].Value = "Data de Finalização";
 
-            int columnNumber = 4;
+            int columnNumber = 5;
             JsonArray stages = await _ploomesService.GetStages();
             foreach (JsonNode stage in stages)
             {
@@ -55,6 +56,10 @@ namespace PloomesCRMExportDealStageHistory
                 columnNumber++;
             }
 
+            int totalColumns = columnNumber;
+
+            workSheet.Cells[1, totalColumns].Value = "Tempo total";
+
             int lineNumber = 2;
             JsonArray deals = await _ploomesService.GetDeals(days);
             foreach (JsonNode deal in deals)
@@ -63,7 +68,10 @@ namespace PloomesCRMExportDealStageHistory
                 workSheet.Cells[lineNumber, 2].Value = deal["Name"];
                 workSheet.Cells[lineNumber, 3].Value = Convert.ToDateTime(deal["CreateDate"].ToString());
                 workSheet.Cells[lineNumber, 3].Style.Numberformat.Format = "dd/MM/yyyy HH:mm:ss";
+                workSheet.Cells[lineNumber, 4].Value = Convert.ToDateTime(deal["FinishDate"]?.ToString());
+                workSheet.Cells[lineNumber, 4].Style.Numberformat.Format = "dd/MM/yyyy HH:mm:ss";
 
+                double totalHours = 0;
                 int colWithMaxTime = 0;
                 TimeSpan maxTime = TimeSpan.FromSeconds(0);
                 foreach (JsonNode dealStage in deal["Stages"].AsArray())
@@ -75,7 +83,8 @@ namespace PloomesCRMExportDealStageHistory
 
                     TimeSpan ts = TimeSpan.FromSeconds(Convert.ToDouble(dealStage["Seconds"].ToString(), new CultureInfo("en-US")));
 
-                    string timeFormated = string.Format("{0:00}:{1:00}:{2:00}", (int)ts.TotalHours, ts.Minutes, ts.Seconds);
+                    double timeFormated = ts.TotalDays;
+                    totalHours += timeFormated;
 
                     workSheet.Cells[lineNumber, columnNumber].Value = timeFormated;
                     workSheet.Cells[lineNumber, columnNumber].Style.Numberformat.Format = "HH:mm:ss";
@@ -86,6 +95,10 @@ namespace PloomesCRMExportDealStageHistory
                         colWithMaxTime = columnNumber;
                     }
                 }
+
+
+                workSheet.Cells[lineNumber, totalColumns].Value = totalHours;
+                workSheet.Cells[lineNumber, totalColumns].Style.Numberformat.Format = "HH:mm:ss";
 
                 Color colFromHex = ColorTranslator.FromHtml("#FFFF00");
                 workSheet.Cells[lineNumber, colWithMaxTime].Style.Fill.PatternType = ExcelFillStyle.Solid;
