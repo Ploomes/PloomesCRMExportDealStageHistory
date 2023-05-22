@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
 using System.Data.Common;
@@ -13,11 +14,13 @@ namespace PloomesCRMExportDealStageHistory
     {
         private readonly PloomesService _ploomesService;
         private readonly IHostApplicationLifetime _applicationLifetime;
+        private readonly string _basePath;
 
-        public Exporter(PloomesService ploomesService, IHostApplicationLifetime hostApplicationLifetime) 
+        public Exporter(PloomesService ploomesService, IHostApplicationLifetime hostApplicationLifetime, IConfiguration configuration) 
         { 
             _ploomesService= ploomesService;
             _applicationLifetime = hostApplicationLifetime;
+            _basePath = configuration.GetValue<string>("BasePath");
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -26,12 +29,16 @@ namespace PloomesCRMExportDealStageHistory
             Console.WriteLine("De quantos dias atrás (a partir de hoje) você gostaria de extrair?");
             int days = Convert.ToInt32(Console.ReadLine());
 
-            string subPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) + "/Exportacoes/";
+            string path = string.Empty;
+
+            string subPath = (!string.IsNullOrEmpty(_basePath) ? _basePath : Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)) + "/Exportacoes/";
             bool exists = Directory.Exists(subPath);
             if (!exists)
                 Directory.CreateDirectory(subPath);
 
-            string path = subPath + DateTime.Now.Date.ToString("yyyy-MM-dd") + "-" + Guid.NewGuid().ToString() + ".xlsx";
+            path = subPath + DateTime.Now.Date.ToString("yyyy-MM-dd") + "-" + Guid.NewGuid().ToString() + ".xlsx";
+
+            Console.WriteLine(path);
 
             Console.WriteLine("Estamos iniciando a exportação...");
 

@@ -35,7 +35,7 @@ namespace PloomesCRMExportDealStageHistory
             
             JsonArray dealHistoryResponse = new ();
 
-            string url = _url + $"Deals@Stages@History?$select=CreateDate,UpdateDate,StageId,DealId&$expand=Deal($select=Title,CreateDate,FinishDate)&$top={top}&$skip={skip}&$filter=Deal/PipelineId+eq+35992+and+Stage/PipelineId+eq+35992+and+Deal/CreateDate+ge+{filterDate}";
+            string url = GenerateUrl(_url, top, skip, filterDate);
             dealHistoryResponse = JsonSerializer.Deserialize<JsonObject>(await _requestService.Request(url, HttpMethod.Get, _headers))["value"].AsArray();
             IEnumerable<object> dealStageHistories = dealHistoryResponse.ToList<object>();
 
@@ -43,11 +43,11 @@ namespace PloomesCRMExportDealStageHistory
             {
                 skip += 100;
 
-                url = _url + $"Deals@Stages@History?$select=CreateDate,UpdateDate,StageId,DealId&$expand=Deal($select=Title,CreateDate)&$top={top}&$skip={skip}&$filter=Deal/PipelineId+eq+35992+and+Stage/PipelineId+eq+35992+and+Deal/CreateDate+ge+{filterDate}";
+                url = GenerateUrl(_url, top, skip, filterDate);
                 dealHistoryResponse = JsonSerializer.Deserialize<JsonObject>(await _requestService.Request(url, HttpMethod.Get, _headers))["value"].AsArray();
                 dealStageHistories = dealStageHistories.Concat(dealHistoryResponse.ToList<object>());
 
-                Task.Delay(1000);
+                _ = Task.Delay(1000);
             }
 
             JsonArray response = new();
@@ -98,6 +98,18 @@ namespace PloomesCRMExportDealStageHistory
             }
 
             return response;
+        }
+
+        private string GenerateUrl(string url, int top, int skip, string filterDate)
+        {
+            string endpoint = "Deals@Stages@History";
+            string selectQuery = "?$select=CreateDate,UpdateDate,StageId,DealId";
+            string expandQuery = "&$expand=Deal($select=Title,CreateDate,FinishDate)";
+            string topQuery = $"&$top={top}";
+            string skipQuery = $"&$skip={skip}";
+            string filterQuery = $"&$filter=Deal/PipelineId+eq+35992+and+Stage/PipelineId+eq+35992+and+Deal/CreateDate+ge+{filterDate}";
+
+            return url + endpoint + selectQuery + expandQuery + topQuery + skipQuery + filterQuery;
         }
     }
 }
